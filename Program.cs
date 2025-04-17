@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Mvc;
 using TempModbusProject.Configure;
+using TempModbusProject.Configure.FilterConfigure;
 using TempModbusProject.Model;
 using TempModbusProject.Service;
 using TempModbusProject.Service.Context;
@@ -18,14 +20,21 @@ configBuilder.AddJsonFile("appsettings.json", optional: false, reloadOnChange: t
 IConfigurationRoot config = configBuilder.Build();
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JWT"));//读取配置文件
 builder.Services.Configure<SqlSettings>(builder.Configuration.GetSection("ConnectionStrings"));//读取配置文件
+builder.Services.Configure<MvcOptions>(options =>
+{
+    options.Filters.Add<AllExceptionFilter>(); //注册全局异常过滤器
+    options.Filters.Add<TransactionFilter>(); //注册全局事务过滤器
+    options.Filters.Add<currentLimit>(); //注册全局限流过滤器
+});
 //注册服务
 builder.Services.AddScoped<PortLineVm>();
 builder.Services.AddScoped<readConfig>();
 builder.Services.AddScoped<SqlToolsServices>();
+builder.Services.AddScoped<IConsoleChangeColors, ConsoleChangeColor>();
 // 注册定时任务服务
 builder.Services.AddHostedService<TimeTaskImp>();
 
-
+builder.Services.AddMemoryCache();
 builder.Services.AddScoped<ICommunicationFactory, CommunicationFactory>();
 
 
