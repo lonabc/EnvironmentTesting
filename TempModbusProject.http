@@ -1,0 +1,6 @@
+@TempModbusProject_HostAddress = http://localhost:5091
+
+GET {{TempModbusProject_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
