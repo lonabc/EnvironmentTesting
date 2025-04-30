@@ -27,13 +27,13 @@ namespace TempModbusProject.Service
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            // 启动时立即执行一次，之后每隔10秒执行一次
-            _timer = new Timer(
-                callback: _ => _ = ExecuteTaskAsync(),
-                state: null,
-                dueTime: TimeSpan.Zero,
-                period: TimeSpan.FromSeconds(6)
-            );
+            //// 启动时立即执行一次，之后每隔10秒执行一次
+            //_timer = new Timer(
+            //    callback: _ => _ = ExecuteTaskAsync(),
+            //    state: null,
+            //    dueTime: TimeSpan.Zero,
+            //    period: TimeSpan.FromSeconds(6)
+            //);
             return Task.CompletedTask;
         }
 

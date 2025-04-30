@@ -31,6 +31,7 @@ builder.Services.AddScoped<PortLineVm>();
 builder.Services.AddScoped<readConfig>();
 builder.Services.AddScoped<SqlToolsServices>();
 builder.Services.AddScoped<IConsoleChangeColors, ConsoleChangeColor>();
+builder.Services.AddSingleton<IEsp8266Conncet, Esp8266Connect>();
 // 注册定时任务服务
 builder.Services.AddHostedService<TimeTaskImp>();
 

@@ -22,26 +22,29 @@ namespace TempModbusProject.Controllers
         ICommunicationFactory _communicationFactory;
         readConfig _readConfig;
         SqlToolsServices _sqlToolsServices;
+        IEsp8266Conncet _esp8266Conncet;
 
-        public TestController(PortLineVm portLineVm,ICommunicationFactory communicationFactory,readConfig readConfig,SqlToolsServices sqlToolsServices)
+
+        public TestController(PortLineVm portLineVm,ICommunicationFactory communicationFactory,readConfig readConfig,SqlToolsServices sqlToolsServices,IEsp8266Conncet esp8266Conncet)
         {
             _portSuper = portLineVm;
             _communicationFactory = communicationFactory;
             _readConfig = readConfig;
             _sqlToolsServices = sqlToolsServices;
+            _esp8266Conncet = esp8266Conncet;
 
 
         }
-
         [HttpPost("TestController", Name = "TestController")]
         public void TestController1()
         {
-           // _readConfig.readSqlConnectSetting(); //读取配置文件   
-           //UserModels userModels= _sqlToolsServices.selectSql("user","password");
-            //Console.WriteLine(userModels.name + " " + userModels.password);
-          
-                throw new Exception();
+            _esp8266Conncet.connectEsp8266Async("47.121.112.154", 1883);
            
+        }
+        [HttpPost("GetController", Name = "GetController")]
+        public async void GetController()
+        {
+            await _esp8266Conncet.subTopicEsp8266("temp");
         }
      
     

@@ -30,8 +30,10 @@ namespace TempModbusProject.Controllers
                 Console.WriteLine(SenSorData._senSorData[i]);
             }
         }
+
+
         [HttpPost("LoginTest", Name = "LoginTest")]
-        public string LoginTest([FromBody] UserModels userModels)
+        public string LoginTest([FromBody] UserModels userModels) //用户登录
         {
             Console.WriteLine("登入功能触发");
             if (userModels == null) return "参数为空";
