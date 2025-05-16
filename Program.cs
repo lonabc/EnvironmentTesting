@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebSockets;
 using TempModbusProject.Configure;
 using TempModbusProject.Configure.FilterConfigure;
 using TempModbusProject.Model;
@@ -31,7 +32,10 @@ builder.Services.AddScoped<PortLineVm>();
 builder.Services.AddScoped<readConfig>();
 builder.Services.AddScoped<SqlToolsServices>();
 builder.Services.AddScoped<IConsoleChangeColors, ConsoleChangeColor>();
-builder.Services.AddSingleton<IEsp8266Conncet, Esp8266Connect>();
+builder.Services.AddSingleton<IModbusFactory,ModbusFactory>();
+builder.Services.AddSingleton<Esp8266Connect>();
+builder.Services.AddScoped<CommunicationImp>();
+builder.Services.AddSingleton<ModbusPublicBasic>();
 // 注册定时任务服务
 builder.Services.AddHostedService<TimeTaskImp>();
 

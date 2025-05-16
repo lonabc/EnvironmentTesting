@@ -28,15 +28,96 @@ namespace TempModbusProject.Service
         public Task StartAsync(CancellationToken cancellationToken)
         {
             //// 启动时立即执行一次，之后每隔10秒执行一次
-            //_timer = new Timer(
-            //    callback: _ => _ = ExecuteTaskAsync(),
-            //    state: null,
-            //    dueTime: TimeSpan.Zero,
-            //    period: TimeSpan.FromSeconds(6)
-            //);
+            _timer = new Timer(
+                callback: _ => _ = ExecuteTaskEespAsync(),
+                state: null,
+                dueTime: TimeSpan.Zero,
+                period: TimeSpan.FromSeconds(6)
+            );
             return Task.CompletedTask;
         }
 
+        private async Task ExecuteTaskEespAsync() // esp8266 串口通信
+        {
+            // 如果任务正在执行，则跳过本次触发（避免重叠执行）
+            if (!get_Enlock()) //获取锁失败
+            {
+                Console.WriteLine("前一个任务仍在执行，跳过本次触发");
+                return;
+            }
+
+            try
+            {
+                using (var scope = _serviceScopeFactory.CreateScope())
+                {
+                    var myCom = scope.ServiceProvider.GetRequiredService<ICommunicationFactory>();
+
+                    /**
+                     *  这里使用了懒加载的方式进行初始化，确保只在第一次调用时创建通信对象。
+                     *  如果通信端口偶然断开连接，_initialized会在PortLineMV类里的 SendModbusFrame(byte[] frame)中被设置为false，
+                     *  之后可以重新创建通信对象。
+                     **/
+                    if (!_initialized) // 如果没有初始化,重新创建通信对象
+                    {
+                        com = myCom.Create(25.0f, 0x0000, "Esp8266"); //重新创建通信对象
+                        if (await com.communicationInit(1883.ToString()))//初始化端口
+                        {
+                            await com.subTopicEsp8266("test");
+                            _initialized = true; // 设置为已初始化
+                        }
+                        else
+                        {
+                            for (int i = 2; i < 10; i++)
+                            {
+                              
+                                if (await com.communicationInit(1883.ToString()))
+                                {
+                                    await com.subTopicEsp8266("test");
+                                    _initialized = true; // 设置为已初始化
+                                    Thread.Sleep(500); // 等待0.5秒
+                                    Console.WriteLine($"端口初始化成功，端口号：{1883}");
+                                    break; // 端口初始化成功，跳出循环
+                                }
+                                _initialized = false; // 设置为未初始化
+
+                            }
+                        }
+                    }
+
+                    // Console.WriteLine($"轮询读取温度开始： {DateTime.Now}");
+                    NLogConfigure.WirteLogTest($"轮询读取温度开始： {DateTime.Now}");
+                    await com.communicationSend("test",1,"temp",0x0000);
+                    await Task.Delay(700);
+                    //   Console.WriteLine($"轮询读取光照强度结束： {DateTime.Now}");
+                    NLogConfigure.WirteLogTest($"轮询读取光照强度结束： {DateTime.Now}");
+                    await com.communicationSend("test", 1, "temp", 0x0002);
+                    await Task.Delay(700);
+
+                    //  Console.WriteLine($"轮询读取空气质量结束： {DateTime.Now}");
+                    NLogConfigure.WirteLogTest($"轮询读取空气质量结束： {DateTime.Now}");
+                    await com.communicationSend("test", 1, "temp", 0x0004);
+                
+                    count++;
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                Console.WriteLine("任务被取消");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"任务执行失败: {ex.Message}");
+            }
+            finally
+            {
+                if (count >= 20)
+                {
+                    count = 0;
+                    Console.Clear();//清除控制台
+                }
+                exit_Enlock(); // 释放锁
+            }
+        }
 
 
         private async Task ExecuteTaskAsync()
@@ -61,8 +142,8 @@ namespace TempModbusProject.Service
                      **/
                     if (!_initialized) // 如果没有初始化,重新创建通信对象
                     {
-                        com = myCom.Create(25.0f, 0x0000); //重新创建通信对象
-                        if (com.communicationInit(portId))//初始化端口
+                        com = myCom.Create(25.0f, 0x0000,"Modbus"); //重新创建通信对象
+                        if (await com.communicationInit(portId))//初始化端口
                         {
                             _initialized = true; // 设置为已初始化
                         }
@@ -71,7 +152,7 @@ namespace TempModbusProject.Service
                             for (int i = 2; i < 10; i++)
                             { 
                                 portId = (i + 1).ToString(); // 端口ID从1到10
-                                if (com.communicationInit(portId))
+                                if (await com.communicationInit(portId))
                                 { 
                                     _initialized=true; // 设置为已初始化
                                     Thread.Sleep(500); // 等待0.5秒

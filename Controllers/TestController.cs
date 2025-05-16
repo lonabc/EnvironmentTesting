@@ -20,31 +20,36 @@ namespace TempModbusProject.Controllers
         PortLineVm _portSuper;
 
         ICommunicationFactory _communicationFactory;
+        ICommunication _communication;
+        ICommunication _espCommuntication;
         readConfig _readConfig;
         SqlToolsServices _sqlToolsServices;
-        IEsp8266Conncet _esp8266Conncet;
+       
 
 
-        public TestController(PortLineVm portLineVm,ICommunicationFactory communicationFactory,readConfig readConfig,SqlToolsServices sqlToolsServices,IEsp8266Conncet esp8266Conncet)
+        public TestController(PortLineVm portLineVm,ICommunicationFactory communicationFactory,readConfig readConfig,SqlToolsServices sqlToolsServices)
         {
             _portSuper = portLineVm;
-            _communicationFactory = communicationFactory;
+         
             _readConfig = readConfig;
             _sqlToolsServices = sqlToolsServices;
-            _esp8266Conncet = esp8266Conncet;
-
+            _espCommuntication = communicationFactory.Create(0.0f,0,"Esp8266");
+            _communication = communicationFactory.Create(0.0f, 0, "Modbus");
 
         }
         [HttpPost("TestController", Name = "TestController")]
         public void TestController1()
         {
-            _esp8266Conncet.connectEsp8266Async("47.121.112.154", 1883);
+           _espCommuntication.communicationInit(1883.ToString());
            
         }
         [HttpPost("GetController", Name = "GetController")]
-        public async void GetController()
+        public async void GetController() 
         {
-            await _esp8266Conncet.subTopicEsp8266("temp");
+            await _espCommuntication.subTopicEsp8266("test");
+
+            await _espCommuntication.communicationSend("test",1,"temp",0x0004);
+
         }
      
     

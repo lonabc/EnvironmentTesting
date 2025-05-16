@@ -4,17 +4,22 @@ namespace TempModbusProject.Service
 {
     public class CommunicationImp : ICommunication
     {
-        private float temp;
-        private ushort startAddress;
+        private float temp { get; set; }
+        private ushort startAddress { get; set;}
         public  PortLineVm _portSuper; //这个是要注入的对象
 
-        public CommunicationImp(float _temp,ushort _startAddress)
+        public CommunicationImp()
         {
-            temp = _temp;
-            startAddress=_startAddress;
+            
         }
 
-        public override Task communicationSend(ushort portId) //写入浮点数据
+        public void initModbusParmeter(float _temp, ushort _startAddress)
+        {
+            temp = _temp;
+            startAddress = _startAddress;
+        }
+
+        public override Task communicationSend(String address,ushort portId,String topicName, ushort startAddress) //写入浮点数据
         {
         //    _portSuper.MessageInit(portId); //初始化端口
             byte[] bytes = BitConverter.GetBytes(temp); //获取到的字节数组，低位在前，高位在后,小端,windows默认
@@ -38,14 +43,27 @@ namespace TempModbusProject.Service
             return Task.CompletedTask; //返回一个完成的任务
         }
 
-        public override bool communicationInit(string portId)
+
+        public override Task<bool> communicationInit(string portId)
         {
-           return _portSuper.MessageInit(portId); //初始化端口
+            return Task.FromResult(_portSuper.MessageInit(portId)); // 将 bool 包装为 Task<bool>
         }
 
         public override void initAddress(byte address)
         {
             startAddress = address; //初始化地址
+        }
+
+
+
+        public override Task DisconnectAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task subTopicEsp8266(string topicName)
+        {
+            throw new NotImplementedException();
         }
     }
 }

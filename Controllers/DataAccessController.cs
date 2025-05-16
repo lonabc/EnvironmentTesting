@@ -32,8 +32,8 @@ namespace TempModbusProject.Controllers
         }
 
 
-        [HttpPost("LoginTest", Name = "LoginTest")]
-        public string LoginTest([FromBody] UserModels userModels) //用户登录
+        [HttpPost("LoginUser", Name = "LoginUser")]
+        public string LoginUser([FromBody] UserModels userModels) //用户登录
         {
             Console.WriteLine("登入功能触发");
             if (userModels == null) return "参数为空";
