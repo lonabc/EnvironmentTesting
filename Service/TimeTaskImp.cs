@@ -96,7 +96,11 @@ namespace TempModbusProject.Service
                     //  Console.WriteLine($"轮询读取空气质量结束： {DateTime.Now}");
                     NLogConfigure.WirteLogTest($"轮询读取空气质量结束： {DateTime.Now}");
                     await com.communicationSend("test", 1, "temp", 0x0004);
-                
+                    Console.WriteLine($"轮询获取灯光状态和报警次数 {DateTime.Now}");
+                    await com.communicationSend("test", 1, "temp", 0x0006); // 获取灯光状态和报警次数
+                    await Task.Delay(700);
+    
+
                     count++;
                 }
             }
@@ -120,7 +124,7 @@ namespace TempModbusProject.Service
         }
 
 
-        private async Task ExecuteTaskAsync()
+        private async Task ExecuteTaskAsync() // Modbus 串口通信暂时废弃
         {
             // 如果任务正在执行，则跳过本次触发（避免重叠执行）
             if (!get_Enlock()) //获取锁失败

@@ -74,7 +74,7 @@ namespace TempModbusProject.Configure
         {
             using (MemoryStream ms=new MemoryStream())
             {
-                //帧头数据
+                //帧头数据，自定义数据帧格式，避免与其他协议冲突
                 ms.Write(new byte[] { 0x7e, 0x7e, 0x7e, 0x7e });
                 ms.Write(new byte[] { 0x01,0x00 });
 

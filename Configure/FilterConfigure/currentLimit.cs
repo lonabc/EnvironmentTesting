@@ -13,7 +13,7 @@ namespace TempModbusProject.Configure.FilterConfigure
             _memoryCache = memoryCache;
         }
 
-        public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
+        public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)//全局限流过滤器
         {
             Console.WriteLine("过滤器设置");
            String removeIp = context.HttpContext.Connection.RemoteIpAddress?.ToString(); //获取请求的IP地址
@@ -22,7 +22,7 @@ namespace TempModbusProject.Configure.FilterConfigure
             if (lastTikc == null || Environment.TickCount64 - lastTikc > 2000)
             {
                 _memoryCache.Set<long>(cacheKey, Environment.TickCount64, TimeSpan.FromSeconds(10));
-                await next();
+                await next(); //放行
                 return;
             }
             else {

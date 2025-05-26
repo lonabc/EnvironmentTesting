@@ -43,6 +43,7 @@ namespace TempModbusProject.Service
             return Task.CompletedTask; //返回一个完成的任务
         }
 
+        
 
         public override Task<bool> communicationInit(string portId)
         {

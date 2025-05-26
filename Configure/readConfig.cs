@@ -4,7 +4,7 @@ using TempModbusProject.Model;
 
 namespace TempModbusProject.Configure
 {
-    public class readConfig
+    public class readConfig //配置文件读取
     {
         private readonly IOptionsSnapshot<JwtSettings> optDbSettings;
         private readonly IOptionsSnapshot<SqlSettings> sqlConnectSettings;

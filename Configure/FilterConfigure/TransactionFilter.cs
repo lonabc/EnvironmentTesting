@@ -8,7 +8,7 @@ namespace TempModbusProject.Configure.FilterConfigure
 {
     public class TransactionFilter : IAsyncActionFilter
     {
-        public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
+        public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next) //全局事务过滤器
         {
             bool hasNotTransactional = false;
             if(context.ActionDescriptor is ControllerActionDescriptor) //判断是不是控制器方法
