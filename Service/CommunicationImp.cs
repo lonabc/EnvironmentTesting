@@ -66,5 +66,10 @@ namespace TempModbusProject.Service
         {
             throw new NotImplementedException();
         }
+
+        public override Task communicationSendSignal(string address, ushort portId, string topicName, ushort startAddress)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

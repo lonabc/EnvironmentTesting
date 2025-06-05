@@ -14,17 +14,21 @@ namespace TempModbusProject.Service
 
         private IModbusPublic _modbusPublic;
 
+        private ICacheMy cacheMy;
+
         private readonly IModbusFactory _modbusFactory;
 
         private String ipAddress= "47.121.112.154";
 
+        private bool _connected = false; //懒加载设备状态
+
         public static ushort startAddressModbus = 0x0000; //起始地址
 
-        public Esp8266Connect(IModbusFactory modbusFactory)
+        public Esp8266Connect(IModbusFactory modbusFactory, ICacheMy cacheMy)
         {
             _modbusFactory = modbusFactory;
             _modbusPublic = _modbusFactory.create("Basic");
-         
+            this.cacheMy = cacheMy;
         }
 
 
@@ -74,8 +78,12 @@ namespace TempModbusProject.Service
                 var retain = e.ApplicationMessage.Retain;
                 //   _modbusPublic.CalculateCRC
                 byte[] bytes=  HexStringToByteArray(payload);
-             //   Console.WriteLine($"收到消息 - 主题: {topic},有效载荷：{payload}, QoS: {qos}, Retain: {retain}");
-
+                //   Console.WriteLine($"收到消息 - 主题: {topic},有效载荷：{payload}, QoS: {qos}, Retain: {retain}");
+                if (!_connected)
+                {
+                    cacheMy.setCacge("ConnectStatus","YES");
+                    _connected = true; //设置连接状态为已连接
+                }
 
                 if (_modbusPublic.IsValidModbusFrame(bytes))
                 {
@@ -94,34 +102,38 @@ namespace TempModbusProject.Service
                                 floatBytes[0] = (byte)(values[1]& 0xFF);
                                 floatBytes[1] = (byte)(values[1] >> 8);
                                 floatBytes[2] = (byte)(values[0] & 0xFF);
-                                floatBytes[3] = (byte)(values[0] >> 8); 
-                                if (startAddressModbus==0x0006)
-                                { 
-                                    int lightStatus = (int)((floatBytes[0] & 0xFF) << 8)| (floatBytes[1] & 0xFF); //获取灯光状态
-                                    int warngingCount = (int)((floatBytes[2] & 0xFF) << 8) | (floatBytes[3] & 0xFF); //获取报警次数
+                                floatBytes[3] = (byte)(values[0] >> 8);
+                                if (startAddressModbus == 0x0006)
+                                {
+                                    int lightStatus = (int)((floatBytes[0] & 0xFF) << 8) | (floatBytes[1] & 0xFF); //获取灯光状态
+
                                     SenSorData._senSorDataInt[0] = lightStatus; //存储灯光状态
-                                    SenSorData._senSorDataInt[1] = warngingCount; //存储报警次数
+
 
                                 }
 
                                 float result = BitConverter.ToSingle(floatBytes, 0); //转换位浮点数
-                    //            Console.WriteLine($"接收到的浮点数: {result}");
+                             // Console.WriteLine($"接收到的浮点数: {result}");
                                 switch (startAddressModbus)
                                 {
                                     case 0x0000:
                                         SenSorData._senSorData[0] = result;
-                          //              Console.WriteLine($"接收到的温度: {result}");
+                                        Console.WriteLine($"接收到的温度: {result}");
                                         break;
                                     case 0x0002:
                                         SenSorData._senSorData[1] = result;
-                             //           Console.WriteLine($"接收到的空气污染度: {result}");
+                                        Console.WriteLine($"接收到的空气污染度: {result}");
                                         break;
                                     case 0x0004:
                                         SenSorData._senSorData[2] = result;
-                           //             Console.WriteLine($"接收到的光照强度: {result}");
-                           //             Console.WriteLine("/r/n");
+                                        Console.WriteLine($"接收到的光照强度: {result}");
+                                        Console.WriteLine("/r/n");
                                         break;
-                                  
+                                    case 0x0006:
+
+                                        Console.WriteLine($"接收到的灯光状态: {result}");
+                                        break;
+
                                     default:
                                         break;
                                 }
@@ -137,6 +149,21 @@ namespace TempModbusProject.Service
                 Console.WriteLine(ex + "处理MQTT消息时出错");
             }
             return Task.CompletedTask;
+        }
+
+        public  async Task communicationWrite(ushort address,ushort value,string topicName)
+        {
+            
+            byte[] frame = _modbusPublic.writeModbusFrame(address, new ushort[] { value }); //写入寄存器指令
+            if (_mqttClient == null || !_mqttClient.IsConnected)
+            {
+                throw new InvalidOperationException("Client not connneceted");
+            }
+            var sent = new MqttApplicationMessageBuilder().
+            WithTopic(topicName).
+            WithPayload(frame).
+            WithQualityOfServiceLevel(MQTTnet.Protocol.MqttQualityOfServiceLevel.AtLeastOnce).Build();
+            await _mqttClient.PublishAsync(sent);
         }
 
         //参数一内容，参数二寄存器数量，参数三订阅的主题，参数四起始地址
@@ -160,7 +187,7 @@ namespace TempModbusProject.Service
         }
 
 
-        public async Task communicationSendSignal(string address, ushort portId, string topicName, ushort startAddress) //读取单个寄存器
+        public override async Task communicationSendSignal(string address, ushort portId, string topicName, ushort startAddress) //读取单个寄存器
         {
             startAddressModbus = startAddress; //更新起始地址
           
@@ -174,7 +201,6 @@ namespace TempModbusProject.Service
             WithPayload(frame).
             WithQualityOfServiceLevel(MQTTnet.Protocol.MqttQualityOfServiceLevel.AtLeastOnce).Build();
             await _mqttClient.PublishAsync(sent);
-
         }
 
         public override async Task DisconnectAsync()

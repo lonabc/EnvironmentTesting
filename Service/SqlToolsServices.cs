@@ -65,8 +65,8 @@ namespace TempModbusProject.Service
                 using (SqlConnection sqlConnection = new SqlConnection(_connectionString))
                 {
                     var result = sqlConnection.Execute(
-                        "insert into device (userId,warningTimes,lightStaStus) values (@userId,@warningTimes,@lightStatus)",
-                        new { userId = 1, warningTimes = 0, lightStatus = 'Y' }
+                        "insert into device (userId,warningTimes,lightStaStus,deviceId) values (@userId,@warningTimes,@lightStatus,@deviceId)",
+                        new { userId = deviceModel.UserId, warningTimes = deviceModel.WarningTimes, lightStatus = deviceModel.LightStatus, deviceId=deviceModel.DeviceId}
                         );
 
                 }
@@ -101,15 +101,16 @@ namespace TempModbusProject.Service
             }
         }
 
-        public bool setLightStatus(int deviceId, char lightStatus)
+        public bool setLightStatus(int deviceId, ushort lightStatus)
         {
+            char status = lightStatus == 1 ? 'Y' : 'N'; // 将状态转换为字符
             try
             {
                 using (SqlConnection sqlConnection = new SqlConnection(_connectionString))
                 {
                     sqlConnection.Execute(
                         "update device set lightStaStus = @lightStatus where deviceId = @deviceId",
-                        new { lightStatus, deviceId }
+                        new { lightStatus= status, deviceId }
                         );
                 }
                 return true;

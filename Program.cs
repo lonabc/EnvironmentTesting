@@ -35,6 +35,7 @@ builder.Services.AddScoped<IConsoleChangeColors, ConsoleChangeColor>();
 builder.Services.AddSingleton<IModbusFactory,ModbusFactory>();
 builder.Services.AddSingleton<Esp8266Connect>();
 builder.Services.AddScoped<CommunicationImp>();
+builder.Services.AddSingleton<ICacheMy,CacheMyImp>();
 builder.Services.AddSingleton<ModbusPublicBasic>();
 // 注册定时任务服务
 builder.Services.AddHostedService<TimeTaskImp>();
@@ -53,6 +54,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseAuthorization();
+app.UseResponseCaching();
 
 app.MapControllers();
 

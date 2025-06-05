@@ -96,10 +96,11 @@ namespace TempModbusProject.Service
                     //  Console.WriteLine($"轮询读取空气质量结束： {DateTime.Now}");
                     NLogConfigure.WirteLogTest($"轮询读取空气质量结束： {DateTime.Now}");
                     await com.communicationSend("test", 1, "temp", 0x0004);
-                    Console.WriteLine($"轮询获取灯光状态和报警次数 {DateTime.Now}");
-                    await com.communicationSend("test", 1, "temp", 0x0006); // 获取灯光状态和报警次数
-                    await Task.Delay(700);
-    
+                   // await Task.Delay(700);
+                   // Console.WriteLine($"轮询获取灯光状态和报警次数 {DateTime.Now}");
+                    //await com.communicationSendSignal("test", 1, "temp", 0x0006); // 获取灯光状态和报警次数
+                    //await Task.Delay(700);
+
 
                     count++;
                 }

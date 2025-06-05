@@ -80,6 +80,8 @@ namespace TempModbusProject.Service
             return frame;
         }
 
+
+
         public byte[] readModbusFrame(ushort startAddress, ushort numberOfPoints)
         {
             byte[] frame = BuildModbusFrame(0x01, 0x03, startAddress, numberOfPoints); //构建读取寄存器指令

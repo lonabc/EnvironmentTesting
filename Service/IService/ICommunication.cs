@@ -11,6 +11,7 @@
 
         public abstract Task DisconnectAsync();
         public abstract Task subTopicEsp8266(string topicName);
+        public abstract Task communicationSendSignal(string address, ushort portId, string topicName, ushort startAddress); //读取单个寄存器
 
 
 
